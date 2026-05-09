@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRODY MVP — Demo interactivo v4</title>
+<style>
+:root{
+  --blue:#1A6BFF;--cyan:#00D4FF;--green:#00F0A0;--red:#FF4757;
+  --dark:#080E1A;--dark2:#0D1525;--dark3:#111E35;
+  --text:#EEF2FF;--muted:#7A90B8;--border:rgba(255,255,255,0.08);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--dark);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.dh{width:100%;max-width:1160px;padding:20px 36px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.dlogo{font-size:1.3rem;font-weight:800;letter-spacing:-.03em}
+.dlogo em{font-style:normal;color:var(--cyan)}
+.dtag{background:rgba(0,240,160,.1);color:var(--green);border:1px solid rgba(0,240,160,.2);padding:5px 14px;border-radius:50px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+
+/* LAYOUT */
+.dlayout{display:flex;gap:52px;align-items:flex-start;padding:52px 36px;max-width:1160px;width:100%}
+@media(max-width:880px){.dlayout{flex-direction:column;align-items:center;padding:30px 20px}}
+
+/* PHONE */
+.phone-wrap{flex-shrink:0;position:sticky;top:36px}
+.phone{
+  width:340px;height:680px;border-radius:40px;
+  background:var(--dark2);
+  border:1.5px solid rgba(255,255,255,.1);
+  overflow:hidden;position:relative;
+  box-shadow:0 28px 70px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.phone-notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:90px;height:24px;background:var(--dark);border-radius:50px;z-index:10}
+.phone-screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* SCREENS */
+.scr{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .38s,transform .38s;transform:translateX(18px);display:flex;flex-direction:column}
+.scr.active{opacity:1;pointer-events:all;transform:none}
+
+/* SCREEN 1 — ALERTAS */
+.s1h{padding:46px 18px 14px;background:linear-gradient(180deg,rgba(26,107,255,.14),transparent)}
+.s1t{font-size:1rem;font-weight:700}
+.s1s{font-size:.7rem;color:var(--muted);margin-top:1px}
+.s1live{display:flex;align-items:center;gap:7px;margin-top:10px;background:rgba(0,240,160,.07);border:1px solid rgba(0,240,160,.18);border-radius:9px;padding:7px 11px}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.ltxt{font-size:.72rem;color:var(--green);font-weight:600}
+.feed{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:9px}
+.ai{background:var(--dark3);border:1px solid var(--border);border-radius:13px;padding:12px;position:relative;overflow:hidden}
+.ai::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ai.crit::before{background:var(--red)}.ai.warn::before{background:#FFA040}.ai.ok::before{background:var(--cyan)}
+.atop{display:flex;justify-content:space-between;align-items:flex-start}
+.abadge{font-size:.62rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 9px;border-radius:50px}
+.ai.crit .abadge{background:rgba(255,71,87,.15);color:var(--red)}.ai.warn .abadge{background:rgba(255,160,64,.15);color:#FFA040}.ai.ok .abadge{background:rgba(0,212,255,.12);color:var(--cyan)}
+.atime{font-size:.66rem;color:var(--muted)}
+.atype{font-size:.84rem;font-weight:600;margin:5px 0 3px}
+.adesc{font-size:.73rem;color:var(--muted);line-height:1.5}
+.abts{display:flex;gap:7px;margin-top:9px}
+.abt{font-size:.68rem;font-weight:700;padding:5px 11px;border-radius:7px;border:none;cursor:pointer;font-family:var(--font)}
+.abt.p{background:var(--blue);color:#fff}.abt.g{background:rgba(255,255,255,.05);color:var(--muted)}
+
+/* SCREEN 2 — DASHBOARD */
+.s2h{padding:46px 18px 14px}
+.dcards{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px}
+.dc{background:var(--dark3);border:1px solid var(--border);border-radius:12px;padding:12px}
+.dci{font-size:1.3rem;margin-bottom:5px}
+.dcn{font-size:1.5rem;font-weight:800}
+.dcn.r{color:var(--red)}.dcn.g{color:var(--green)}.dcn.c{color:var(--cyan)}.dcn.o{color:#FFA040}
+.dcl{font-size:.66rem;color:var(--muted);margin-top:1px}
+.gs{padding:0 14px;flex:1;overflow-y:auto}
+.gtitle{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:8px 0 8px}
+.gcard{background:linear-gradient(135deg,rgba(26,107,255,.1),rgba(0,212,255,.05));border:1px solid rgba(26,107,255,.25);border-radius:12px;padding:13px;margin-bottom:8px}
+.gcard h4{font-size:.84rem;margin-bottom:4px}
+.gcard p{font-size:.75rem;color:var(--muted);line-height:1.55}
+.gtip{font-size:.72rem;color:var(--green);margin-top:6px}
+.dno{background:rgba(255,71,87,.06);border:1px solid rgba(255,71,87,.18);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.dno p{font-size:.75rem;color:#FF8888}
+.dno p::before{content:'✗ '}
+
+/* SCREEN 3 — ESPACIO NIÑO */
+.s3w{background:linear-gradient(180deg,#0A1428,#0D1A35);flex:1;display:flex;flex-direction:column;overflow:hidden}
+.s3h{padding:44px 16px 12px;text-align:center;flex-shrink:0}
+.s3em{font-size:2.2rem;margin-bottom:4px}
+.s3t{font-size:.96rem;font-weight:700}
+.s3s{font-size:.7rem;color:var(--muted);margin-top:2px;line-height:1.5}
+/* EMOCIONES */
+.s3-section-lbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 14px;margin-bottom:6px;flex-shrink:0}
+.egrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 14px;flex-shrink:0}
+.ebtn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s;color:var(--text);font-family:var(--font)}
+.ebtn.sel.fear{background:rgba(180,60,255,.2);border-color:rgba(180,60,255,.4)}
+.ebtn.sel.anger{background:rgba(255,71,87,.2);border-color:rgba(255,71,87,.4)}
+.ebtn.sel.sad{background:rgba(0,212,255,.15);border-color:rgba(0,212,255,.3)}
+.ebtn.sel.lonely{background:rgba(255,160,64,.15);border-color:rgba(255,160,64,.3)}
+.eem{font-size:1.5rem}
+.elbl{font-size:.68rem;margin-top:4px;font-weight:600}
+/* CONSEJO */
+.s3-advice{
+  margin:8px 14px 0;
+  background:var(--dark3);border:1px solid var(--border);
+  border-radius:14px;padding:11px;
+  opacity:0;transition:opacity .4s;
+  flex-shrink:0;
+}
+.s3-advice.vis{opacity:1}
+.s3-advice-tag{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);margin-bottom:5px}
+.s3-advice p{font-size:.76rem;line-height:1.6;color:var(--muted)}
+.s3-advice strong{color:var(--text)}
+.s3-tips{
+  margin:6px 14px 0;
+  background:rgba(0,240,160,.05);border:1px solid rgba(0,240,160,.15);
+  border-radius:12px;padding:9px 11px;
+  opacity:0;transition:opacity .4s .1s;
+  flex-shrink:0;
+}
+.s3-tips.vis{opacity:1}
+.s3-tips-title{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#00F0A0;margin-bottom:5px}
+.s3-tip-item{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px}
+.s3-tip-item:last-child{margin:0}
+.s3-tip-dot{width:5px;height:5px;border-radius:50%;background:#00F0A0;flex-shrink:0;margin-top:5px}
+.s3-tip-item p{font-size:.72rem;color:var(--muted);line-height:1.45}
+/* SPACER */
+.s3-flex{flex:1;min-height:8px}
+/* BOTÓN EMERGENCIA */
+.emergency-btn{
+  margin:0 14px 14px;
+  padding:13px;
+  background:linear-gradient(135deg,rgba(255,71,87,.18),rgba(180,30,30,.12));
+  border:1.5px solid rgba(255,71,87,.5);
+  border-radius:12px;
+  color:#FF6060;font-family:var(--font);font-weight:800;font-size:.82rem;
+  cursor:pointer;width:calc(100% - 28px);text-align:center;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  flex-shrink:0;
+  transition:background .2s,transform .1s;
+  position:relative;overflow:hidden;
+}
+.emergency-btn::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,71,87,.08);
+  animation:emergPulse 2.5s ease-in-out infinite;
+}
+@keyframes emergPulse{0%,100%{opacity:0}50%{opacity:1}}
+.emergency-btn:active{transform:scale(.97)}
+.emerg-icon{font-size:1rem;flex-shrink:0}
+.emerg-sent{
+  margin:0 14px 14px;
+  padding:11px;
+  background:rgba(0,240,160,.1);border:1px solid rgba(0,240,160,.3);
+  border-radius:12px;
+  color:var(--green);font-size:.78rem;font-weight:700;text-align:center;
+  width:calc(100% - 28px);flex-shrink:0;display:none;
+}
+
+/* SCREEN 4 — TECH */
+.s4c{flex:1;padding:46px 14px 14px;overflow-y:auto}
+.s4t{font-size:1rem;font-weight:700;margin-bottom:3px}
+.s4s{font-size:.7rem;color:var(--muted);margin-bottom:16px}
+.ti{background:var(--dark3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
+.ti-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tido{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.tido.g{background:var(--green)}.tido.c{background:var(--cyan)}.tido.b{background:var(--blue)}.tido.o{background:#FFA040}
+.ti h4{font-size:.84rem;font-weight:700}
+.ti p{font-size:.75rem;color:var(--muted);line-height:1.55}
+.priv{background:rgba(0,240,160,.06);border:1px solid rgba(0,240,160,.2);border-radius:12px;padding:12px;text-align:center;margin-top:8px}
+.priv h4{font-size:.84rem;color:var(--green);margin-bottom:3px}
+.priv p{font-size:.73rem;color:var(--muted)}
+
+/* SCREEN 5 — MERCADO */
+.s5c{flex:1;padding:46px 14px 14px;overflow-y:auto}
+.s5t{font-size:1rem;font-weight:700;margin-bottom:2px}
+.s5s{font-size:.7rem;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.tsm-mini{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.tmr{border-radius:9px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tmr.tam{background:rgba(26,107,255,.1);border:1px solid rgba(26,107,255,.3)}
+.tmr.sam{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);margin:0 8px}
+.tmr.som{background:rgba(0,240,160,.07);border:1px solid rgba(0,240,160,.25);margin:0 16px}
+.tmt{font-size:.58rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.tam .tmt{color:var(--blue)}.sam .tmt{color:var(--cyan)}.som .tmt{color:var(--green)}
+.tmname{font-size:.76rem;font-weight:700;color:var(--text)}
+.tmdesc{font-size:.62rem;color:var(--muted);margin-top:1px}
+.tmnum{font-size:1.1rem;font-weight:800;white-space:nowrap;flex-shrink:0}
+.tam .tmnum{color:var(--blue)}.sam .tmnum{color:var(--cyan)}.som .tmnum{color:var(--green)}
+.mct{background:var(--dark3);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:8px}
+.mct table{width:100%;border-collapse:collapse}
+.mct th{font-size:.56rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2)}
+.mct td{font-size:.68rem;padding:5px 8px;border-bottom:1px solid var(--border);color:var(--muted)}
+.mct td:first-child{font-weight:700;color:var(--text)}
+.mct tr:last-child td{border:none}
+.mct .yes{color:var(--green);font-weight:700}.mct .no{color:var(--red)}
+.mct .br td{background:rgba(26,107,255,.07)}.mct .br td:first-child{color:var(--cyan)}
+.entry-mini{background:rgba(26,107,255,.07);border:1px solid rgba(26,107,255,.2);border-radius:10px;padding:10px}
+.entry-mini h4{font-size:.76rem;font-weight:700;margin-bottom:7px}
+.em-step{display:flex;gap:7px;align-items:flex-start;margin-bottom:5px}
+.em-step:last-child{margin:0}
+.emn{width:18px;height:18px;border-radius:50%;background:rgba(26,107,255,.2);color:var(--cyan);font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.em-step p{font-size:.7rem;color:var(--muted);line-height:1.45}
+.em-step p strong{color:var(--text)}
+
+/* BOTTOM NAV */
+.bnav{display:flex;background:rgba(8,14,26,.96);border-top:1px solid var(--border);padding:9px 0 14px;gap:0;flex-shrink:0}
+.ntab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 0;border:none;background:none;color:var(--text);font-family:var(--font)}
+.ntab-ic{font-size:1.1rem}
+.ntab-lb{font-size:.58rem;color:var(--muted);transition:color .2s}
+.ntab-bar{width:22px;height:2px;border-radius:2px;background:transparent;transition:background .2s}
+.ntab.active .ntab-lb{color:var(--cyan)}.ntab.active .ntab-bar{background:var(--cyan)}
+
+/* RIGHT PANEL */
+.dpanel{flex:1;max-width:480px}
+.dsec{margin-bottom:2.8rem}
+.dlabel{font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--cyan);margin-bottom:.75rem}
+.dtitle{font-size:1.7rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-bottom:.7rem}
+.ddesc{font-size:.88rem;color:var(--muted);line-height:1.8}
+.dchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:.9rem}
+.chip{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:50px;padding:5px 12px;font-size:.72rem;color:var(--muted)}
+.chip.on{background:rgba(0,212,255,.08);border-color:rgba(0,212,255,.25);color:var(--cyan)}
+.stabs{display:flex;flex-direction:column;gap:9px}
+.stab{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:13px;cursor:pointer;border:1px solid var(--border);background:transparent;transition:all .2s;color:var(--text);font-family:var(--font);text-align:left}
+.stab:hover{border-color:rgba(255,255,255,.14)}
+.stab.active{border-color:var(--blue);background:rgba(26,107,255,.07)}
+.stic{font-size:1.25rem;flex-shrink:0;margin-top:1px}
+.stb h4{font-size:.86rem;font-weight:700;margin-bottom:2px}
+.stb p{font-size:.77rem;color:var(--muted);line-height:1.5}
+@media(max-width:880px){.dpanel{max-width:100%;width:100%}}
+</style>
+</head>
+<body>
+
+<header class="dh">
+  <div class="dlogo">BR<em>O</em>DY <span style="font-size:.88rem;font-weight:400;color:var(--muted)">MVP Demo</span></div>
+  <span class="dtag">v4.0 · Pre-semilla</span>
+</header>
+
+<div class="dlayout">
+  <!-- PHONE -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- SCREEN 1: ALERTAS -->
+        <div class="scr active" id="sc1">
+          <div class="s1h">
+            <div class="s1t">Monitoreo activo</div>
+            <div class="s1s">Sebastián · 13 años</div>
+            <div class="s1live"><div class="ldot"></div><span class="ltxt">BRODY protegiendo · On-device</span></div>
+          </div>
+          <div class="feed">
+            <div class="ai crit">
+              <div class="atop"><span class="abadge">Grooming</span><span class="atime">hace 3 min</span></div>
+              <div class="atype">Patrón de aislamiento</div>
+              <div class="adesc">Solicitud de secreto + presión emocional. Severidad alta en Instagram.</div>
+              <div class="abts"><button class="abt p" onclick="switchTab(1)">Ver guía →</button><button class="abt g">Ignorar</button></div>
+            </div>
+            <div class="ai warn">
+              <div class="atop"><span class="abadge">Bullying</span><span class="atime">hace 1h</span></div>
+              <div class="atype">Lenguaje hostil repetido</div>
+              <div class="adesc">3 notificaciones con lenguaje agresivo en WhatsApp. Patrón de grupo.</div>
+              <div class="abts"><button class="abt p" onclick="switchTab(1)">Ver guía →</button><button class="abt g">Visto</button></div>
+            </div>
+            <div class="ai ok">
+              <div class="atop"><span class="abadge">Resuelto</span><span class="atime">ayer</span></div>
+              <div class="atype">Señal de tristeza</div>
+              <div class="adesc">Sebastián usó el espacio seguro. Ejercicio completado.</div>
+              <div class="abts"><button class="abt g">Ver historial</button></div>
+            </div>
+          </div>
+          <div class="bnav">
+            <button class="ntab active" onclick="switchTab(0)"><div class="ntab-bar"></div><span class="ntab-ic">🛡️</span><span class="ntab-lb">Alertas</span></button>
+            <button class="ntab" onclick="switchTab(1)"><div class="ntab-bar"></div><span class="ntab-ic">👨‍👩‍👧</span><span class="ntab-lb">Padres</span></button>
+            <button class="ntab" onclick="switchTab(2)"><div class="ntab-bar"></div><span class="ntab-ic">💚</span><span class="ntab-lb">Mi espacio</span></button>
+            <button class="ntab" onclick="switchTab(3)"><div class="ntab-bar"></div><span class="ntab-ic">⚙️</span><span class="ntab-lb">Tecnología</span></button>
+            <button class="ntab" onclick="switchTab(4)"><div class="ntab-bar"></div><span class="ntab-ic">📊</span><span class="ntab-lb">Mercado</span></button>
+          </div>
+        </div>
+
+        <!-- SCREEN 2: PADRES -->
+        <div class="scr" id="sc2">
+          <div class="s2h"><div class="s1t">Panel de padres</div><div class="s1s">Esta semana · Sebastián</div></div>
+          <div class="dcards">
+            <div class="dc"><div class="dci">⚠️</div><div class="dcn r">2</div><div class="dcl">Alertas activas</div></div>
+            <div class="dc"><div class="dci">✅</div><div class="dcn g">5</div><div class="dcl">Resueltas</div></div>
+            <div class="dc"><div class="dci">💬</div><div class="dcn c">3</div><div class="dcl">Conversaciones</div></div>
+            <div class="dc"><div class="dci">🧠</div><div class="dcn o">94%</div><div class="dcl">Precisión hoy</div></div>
+          </div>
+          <div class="gs">
+            <p class="gtitle">Guía para hablar con tu hijo</p>
+            <div class="gcard">
+              <h4>✅ Qué decir</h4>
+              <p>"Sebi, noté que algo te preocupa. ¿Podemos hablar cuando vos quieras? Sin apuro."</p>
+              <p class="gtip">→ Validá la emoción antes de hablar del hecho.</p>
+            </div>
+            <div class="dno"><p>No preguntes: "¿Por qué no me contaste antes?"</p></div>
+            <div class="dno"><p>No reacciones en caliente con el teléfono en mano</p></div>
+            <div class="gcard" style="background:rgba(0,240,160,.06);border-color:rgba(0,240,160,.2)">
+              <h4>💡 Próximo paso</h4>
+              <p>Buscá un momento tranquilo, sin pantallas. Dejá que él hable primero.</p>
+            </div>
+          </div>
+          <div class="bnav">
+            <button class="ntab" onclick="switchTab(0)"><div class="ntab-bar"></div><span class="ntab-ic">🛡️</span><span class="ntab-lb">Alertas</span></button>
+            <button class="ntab active" onclick="switchTab(1)"><div class="ntab-bar"></div><span class="ntab-ic">👨‍👩‍👧</span><span class="ntab-lb">Padres</span></button>
+            <button class="ntab" onclick="switchTab(2)"><div class="ntab-bar"></div><span class="ntab-ic">💚</span><span class="ntab-lb">Mi espacio</span></button>
+            <button class="ntab" onclick="switchTab(3)"><div class="ntab-bar"></div><span class="ntab-ic">⚙️</span><span class="ntab-lb">Tecnología</span></button>
+            <button class="ntab" onclick="switchTab(4)"><div class="ntab-bar"></div><span class="ntab-ic">📊</span><span class="ntab-lb">Mercado</span></button>
+          </div>
+        </div>
+
+        <!-- SCREEN 3: ESPACIO NIÑO -->
+        <div class="scr" id="sc3">
+          <div class="s3w">
+            <div class="s3h"><div class="s3em">🌙</div><div class="s3t">Tu espacio seguro</div><div class="s3s">Solo vos podés ver esto.</div></div>
+            <div class="s3-section-lbl">¿Cómo te sentís ahora?</div>
+            <div class="egrid">
+              <button class="ebtn fear" onclick="selEmo('fear',this)"><div class="eem">😨</div><div class="elbl">Con miedo</div></button>
+              <button class="ebtn anger" onclick="selEmo('anger',this)"><div class="eem">😤</div><div class="elbl">Con bronca</div></button>
+              <button class="ebtn sad" onclick="selEmo('sad',this)"><div class="eem">😢</div><div class="elbl">Triste</div></button>
+              <button class="ebtn lonely" onclick="selEmo('lonely',this)"><div class="eem">😶</div><div class="elbl">Solo/a</div></button>
+            </div>
+            <div class="s3-advice" id="s3advice">
+              <div class="s3-advice-tag">💬 Cómo gestionar esto</div>
+              <p id="s3advicetxt"></p>
+            </div>
+            <div class="s3-tips" id="s3tips">
+              <div class="s3-tips-title">✦ Pasos concretos ahora</div>
+              <div id="s3tipslist"></div>
+            </div>
+            <div class="s3-flex"></div>
+            <button class="emergency-btn" id="emergBtn" onclick="sendEmergency()">
+              <span class="emerg-icon">🆘</span>
+              Necesito ayuda urgente — avisar a mis padres
+            </button>
+            <div class="emerg-sent" id="emergSent">✓ Alerta enviada a tus padres. Están en camino.</div>
+          </div>
+          <div class="bnav">
+            <button class="ntab" onclick="switchTab(0)"><div class="ntab-bar"></div><span class="ntab-ic">🛡️</span><span class="ntab-lb">Alertas</span></button>
+            <button class="ntab" onclick="switchTab(1)"><div class="ntab-bar"></div><span class="ntab-ic">👨‍👩‍👧</span><span class="ntab-lb">Padres</span></button>
+            <button class="ntab active" onclick="switchTab(2)"><div class="ntab-bar"></div><span class="ntab-ic">💚</span><span class="ntab-lb">Mi espacio</span></button>
+            <button class="ntab" onclick="switchTab(3)"><div class="ntab-bar"></div><span class="ntab-ic">⚙️</span><span class="ntab-lb">Tecnología</span></button>
+            <button class="ntab" onclick="switchTab(4)"><div class="ntab-bar"></div><span class="ntab-ic">📊</span><span class="ntab-lb">Mercado</span></button>
+          </div>
+        </div>
+
+        <!-- SCREEN 4: TECH -->
+        <div class="scr" id="sc4">
+          <div class="s4c">
+            <div class="s4t">Arquitectura BRODY</div>
+            <div class="s4s">Cómo funciona por dentro</div>
+            <div class="ti"><div class="ti-top"><div class="tido g"></div><h4>Capa 1 · Regex (~80%)</h4></div><p>Expresiones regulares detectan el 80% de amenazas conocidas. Velocidad máxima, consumo mínimo de batería.</p></div>
+            <div class="ti"><div class="ti-top"><div class="tido c"></div><h4>Capa 2 · Heurística (~15%)</h4></div><p>Análisis contextual: frecuencia, horarios, patrones de escalada. Sin AI, eficiente y preciso.</p></div>
+            <div class="ti"><div class="ti-top"><div class="tido b"></div><h4>Capa 3 · Edge AI (~5%)</h4></div><p>Modelo on-device para casos ambiguos. Opera localmente. Cero datos a la nube.</p></div>
+            <div class="ti"><div class="ti-top"><div class="tido o"></div><h4>BRODY Learn</h4></div><p>Active Learning con Uncertainty Sampling. Aprende slang local. Flywheel de datos incopiable.</p></div>
+            <div class="priv"><h4>🔐 Privacidad total</h4><p>Todo procesado en el dispositivo.<br>BRODY nunca lee el contenido completo.</p></div>
+          </div>
+          <div class="bnav">
+            <button class="ntab" onclick="switchTab(0)"><div class="ntab-bar"></div><span class="ntab-ic">🛡️</span><span class="ntab-lb">Alertas</span></button>
+            <button class="ntab" onclick="switchTab(1)"><div class="ntab-bar"></div><span class="ntab-ic">👨‍👩‍👧</span><span class="ntab-lb">Padres</span></button>
+            <button class="ntab" onclick="switchTab(2)"><div class="ntab-bar"></div><span class="ntab-ic">💚</span><span class="ntab-lb">Mi espacio</span></button>
+            <button class="ntab active" onclick="switchTab(3)"><div class="ntab-bar"></div><span class="ntab-ic">⚙️</span><span class="ntab-lb">Tecnología</span></button>
+            <button class="ntab" onclick="switchTab(4)"><div class="ntab-bar"></div><span class="ntab-ic">📊</span><span class="ntab-lb">Mercado</span></button>
+          </div>
+        </div>
+
+        <!-- SCREEN 5: MERCADO -->
+        <div class="scr" id="sc5">
+          <div class="s5c">
+            <div class="s5t">Oportunidad de mercado</div>
+            <div class="s5s">Un problema global sin solución regional.</div>
+            <div class="tsm-mini">
+              <div class="tmr tam"><div><div class="tmt">TAM</div><div class="tmname">Global</div><div class="tmdesc">Parental control software</div></div><div class="tmnum">$2.4B</div></div>
+              <div class="tmr sam"><div><div class="tmt">SAM</div><div class="tmname">LATAM accesible</div><div class="tmdesc">~170M menores con smartphone</div></div><div class="tmnum">$380M</div></div>
+              <div class="tmr som"><div><div class="tmt">SOM</div><div class="tmname">Año 1-2</div><div class="tmdesc">Argentina · primeras alianzas</div></div><div class="tmnum">$4M</div></div>
+            </div>
+            <div class="mct">
+              <table>
+                <thead><tr><th>App</th><th>On-device</th><th>Sin perm.</th><th>Psic.</th><th>Niño</th></tr></thead>
+                <tbody>
+                  <tr class="br"><td>BRODY ✦</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+                  <tr><td>Qustodio</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
+                  <tr><td>Google FML</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
+                  <tr><td>Screen Time</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="entry-mini">
+              <h4>Estrategia de entrada</h4>
+              <div class="em-step"><div class="emn">1</div><p><strong>Aliados institucionales</strong> — colegios y ONGs como puertas a comunidades</p></div>
+              <div class="em-step"><div class="emn">2</div><p><strong>Boca a boca</strong> — 1 padre satisfecho en un colegio = 400 familias</p></div>
+              <div class="em-step"><div class="emn">3</div><p><strong>Freemium → $5-7/mes</strong> — gratis para enganchar, conversión orgánica</p></div>
+            </div>
+          </div>
+          <div class="bnav">
+            <button class="ntab" onclick="switchTab(0)"><div class="ntab-bar"></div><span class="ntab-ic">🛡️</span><span class="ntab-lb">Alertas</span></button>
+            <button class="ntab" onclick="switchTab(1)"><div class="ntab-bar"></div><span class="ntab-ic">👨‍👩‍👧</span><span class="ntab-lb">Padres</span></button>
+            <button class="ntab" onclick="switchTab(2)"><div class="ntab-bar"></div><span class="ntab-ic">💚</span><span class="ntab-lb">Mi espacio</span></button>
+            <button class="ntab" onclick="switchTab(3)"><div class="ntab-bar"></div><span class="ntab-ic">⚙️</span><span class="ntab-lb">Tecnología</span></button>
+            <button class="ntab active" onclick="switchTab(4)"><div class="ntab-bar"></div><span class="ntab-ic">📊</span><span class="ntab-lb">Mercado</span></button>
+          </div>
+        </div>
+
+      </div><!-- phone-screen -->
+    </div><!-- phone -->
+  </div><!-- phone-wrap -->
+
+  <!-- PANEL DERECHO -->
+  <div class="dpanel">
+    <div class="dsec">
+      <div class="dlabel" id="dlbl">Detección en tiempo real</div>
+      <h2 class="dtitle" id="dtitle">Alertas antes<br>de que sea tarde.</h2>
+      <p class="ddesc" id="ddesc">BRODY detecta bullying, grooming y autolesión en tiempo real, directamente en el dispositivo. Sin leer el contenido de las conversaciones.</p>
+      <div class="dchips" id="dchips">
+        <span class="chip on">On-device AI</span><span class="chip on">Sin cloud</span>
+        <span class="chip">Grooming</span><span class="chip">Bullying</span><span class="chip">Autolesión</span>
+      </div>
+    </div>
+    <div class="stabs">
+      <button class="stab active" onclick="switchTab(0)" id="t0"><span class="stic">🛡️</span><div class="stb"><h4>Feed de alertas</h4><p>Detección en tiempo real con severidad y tipo. Nunca el contenido, siempre el contexto.</p></div></button>
+      <button class="stab" onclick="switchTab(1)" id="t1"><span class="stic">👨‍👩‍👧</span><div class="stb"><h4>Panel de padres</h4><p>Dashboard + guías psicológicas validadas para saber exactamente qué decir.</p></div></button>
+      <button class="stab" onclick="switchTab(2)" id="t2"><span class="stic">💚</span><div class="stb"><h4>Espacio seguro del niño</h4><p>Para que el hijo exprese cómo se siente. Ejercicios, contención y botón de crisis.</p></div></button>
+      <button class="stab" onclick="switchTab(3)" id="t3"><span class="stic">⚙️</span><div class="stb"><h4>Arquitectura técnica</h4><p>La cascada Regex → Heurística → Edge AI. El diferenciador técnico de BRODY.</p></div></button>
+      <button class="stab" onclick="switchTab(4)" id="t4"><span class="stic">📊</span><div class="stb"><h4>TAM / SAM / SOM</h4><p>$2.4B global · $380M LATAM · $4M objetivo año 1. Competidores sin ninguna de las 4 capacidades.</p></div></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pd=[
+  {l:'Detección en tiempo real',t:'Alertas antes\nde que sea tarde.',d:'BRODY detecta bullying, grooming y autolesión en tiempo real, directamente en el dispositivo. Sin leer el contenido de las conversaciones.',c:['On-device AI','Sin cloud','Grooming','Bullying','Autolesión']},
+  {l:'Dashboard parental',t:'Qué decir.\nCuándo decirlo.',d:'No solo alertamos — acompañamos. Scripts validados por psicólogos y guías concretas para la conversación difícil.',c:['Guía psicológica','Sin culpa','Métricas']},
+  {l:'Espacio seguro del niño',t:'Un lugar solo\npara ellos.',d:'El hijo tiene su propio espacio. Puede expresar cómo se siente, hacer ejercicios de respiración y activar una alerta de crisis.',c:['Privado','Sin juzgar','Contención','Ejercicios']},
+  {l:'Arquitectura técnica',t:'Potente por dentro.\nSimple por fuera.',d:'Tres capas de detección optimizadas para batería y privacidad. BRODY Learn agrega un data flywheel incopiable.',c:['Edge AI','BRODY Learn','NotificationLS','FCM + SMS']},
+  {l:'Oportunidad de mercado',t:'$2.4B global.\nSolución regional inexistente.',d:'TAM $2.4B · SAM $380M en LATAM · SOM $4M año 1. Ningún competidor combina on-device + privacidad + módulo psicológico.',c:['TAM $2.4B','SAM $380M','SOM $4M','CAGR 14%']}
+];
+const emo={
+  fear:'<strong>Sentir miedo está bien.</strong> Significa que algo te importa.<br><br>Respirá conmigo: tres veces profundo, lento. No tenés que resolver nada ahora.',
+  anger:'<strong>La bronca es válida.</strong> Algo no estuvo bien.<br><br>Apretá los puños fuerte 5 segundos y soltá. Repetí dos veces.',
+  sad:'<strong>La tristeza no te hace débil.</strong> Te hace humano.<br><br>No tenés que estar bien todo el tiempo. Acá estoy.',
+  lonely:'<strong>Sentirse solo no significa estarlo.</strong><br><br>¿Hay una persona que te recuerde bien ahora mismo?'
+};
+function switchTab(n){
+  for(let i=0;i<5;i++){
+    document.getElementById('sc'+(i+1)).classList.toggle('active',i===n);
+    document.getElementById('t'+i).classList.toggle('active',i===n);
+  }
+  const d=pd[n];
+  document.getElementById('dlbl').textContent=d.l;
+  document.getElementById('dtitle').innerHTML=d.t.replace('\n','<br>');
+  document.getElementById('ddesc').textContent=d.d;
+  document.getElementById('dchips').innerHTML=d.c.map((c,i)=>`<span class="chip${i<2?' on':''}">${c}</span>`).join('');
+}
+const advice={
+  fear:{
+    txt:'Sentir miedo es la forma en que tu cuerpo te avisa que algo importa. Es válido y normal. No estás solo/a en esto.',
+    tips:['Respirá hondo 3 veces, contando hasta 4 al inhalar y 6 al exhalar','Escribí en papel qué es exactamente lo que te asusta','Pensá en una persona de confianza a quien puedas contarle']
+  },
+  anger:{
+    txt:'La bronca es una señal de que algo no estuvo bien. Tus sentimientos son válidos. Lo importante es canalizarla sin hacerte daño.',
+    tips:['Apretá los puños fuerte 5 segundos y soltá — repetí 3 veces','Salí a caminar aunque sea 2 minutos si podés','Antes de responder algo, esperá 10 minutos']
+  },
+  sad:{
+    txt:'La tristeza no te hace débil. Te hace humano. No tenés que estar bien todo el tiempo, y no tenés que aguantarlo solo/a.',
+    tips:['Está bien no hacer nada por un rato — darte permiso de sentir','Escuchá música que te guste o mirá algo que te dé calma','Si podés, contale a alguien de confianza cómo te sentís']
+  },
+  lonely:{
+    txt:'Sentirse solo no significa estarlo para siempre. A veces las personas que nos rodean no saben que las necesitamos.',
+    tips:['Mandá un mensaje a alguien — no tiene que ser sobre lo que sentís','Hacé algo que disfrutes aunque sea 15 minutos','Recordá: este momento pasa, y hay personas que se preocupan por vos']
+  }
+};
+function selEmo(t,btn){
+  document.querySelectorAll('.ebtn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  const adv=advice[t];
+  const aEl=document.getElementById('s3advice');
+  const tEl=document.getElementById('s3tips');
+  document.getElementById('s3advicetxt').innerHTML=adv.txt;
+  document.getElementById('s3tipslist').innerHTML=adv.tips.map(t=>`<div class="s3-tip-item"><div class="s3-tip-dot"></div><p>${t}</p></div>`).join('');
+  aEl.classList.add('vis');
+  tEl.classList.add('vis');
+}
+function sendEmergency(){
+  const btn=document.getElementById('emergBtn');
+  const sent=document.getElementById('emergSent');
+  btn.style.display='none';
+  sent.style.display='block';
+  // En la app real: dispara FCM push a padres con severidad máxima
+}
+</script>
+</body>
+</html>
